@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Feed — Social Platform{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card mb-4">
+      <div class="card-body">
+        <form method="get" action="{% url 'feed' %}" class="d-flex gap-2 mb-3">
+          <input type="search" name="q" value="{{ query }}" class="form-control" placeholder="Search posts...">
+          <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+        </form>
+        {% if user.is_authenticated %}
+          <a href="{% url 'posts:create' %}" class="btn btn-accent w-100"><i class="bi bi-plus-lg me-1"></i> Create post</a>
+        {% else %}
+          <p class="text-muted mb-0 small">Log in to create posts and interact.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {% for post in posts %}
+    <article class="card mb-3 post-card" data-post-id="{{ post.pk }}">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          <a href="{% url 'users:profile' post.author.username %}" class="text-decoration-none text-dark d-flex align-items-center">
+            {% if post.author.userprofile.profile_picture %}
+              <img src="{{ post.author.userprofile.profile_picture.url }}" alt="" class="rounded-circle me-2" width="40" height="40" style="object-fit: cover;">
+            {% else %}
+              <span class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center me-2 text-white" style="width:40px;height:40px;">{{ post.author.username|slice:":1"|upper }}</span>
+            {% endif %}
+            <div>
+              <strong>{{ post.author.username }}</strong>
+              <span class="text-muted small d-block">{{ post.created_at|timesince }} ago · {{ post.get_visibility_display }}</span>
+            </div>
+          </a>
+          {% if user == post.author %}
+            <form method="post" action="{% url 'posts:delete' post.pk %}" class="ms-auto" onsubmit="return confirm('Delete this post?');">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-danger">Delete</button></form>
+          {% endif %}
+        </div>
+        <p class="mb-2">{{ post.content }}</p>
+        {% if post.image %}
+          <img src="{{ post.image.url }}" alt="" class="img-fluid rounded mb-2" style="max-height: 400px; object-fit: contain;">
+        {% endif %}
+        <div class="d-flex align-items-center gap-3 text-muted small">
+          {% if user.is_authenticated %}
+            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none like-btn {% if user in post.likes.all %}text-danger{% else %}text-muted{% endif %}" data-post-id="{{ post.pk }}" data-liked="{% if user in post.likes.all %}1{% else %}0{% endif %}">
+              <i class="bi bi-heart{% if user in post.likes.all %}-fill{% endif %}"></i> <span class="like-count">{{ post.total_likes }}</span>
+            </button>
+          {% else %}
+            <span><i class="bi bi-heart"></i> {{ post.total_likes }}</span>
+          {% endif %}
+          <span><i class="bi bi-chat"></i> {{ post.comments.count }}</span>
+        </div>
+
+        {% if user.is_authenticated %}
+        <form method="post" action="{% url 'posts:comment' post.pk %}" class="mt-2 d-flex gap-2">
+          {% csrf_token %}
+          <input type="text" name="text" class="form-control form-control-sm" placeholder="Write a comment..." required>
+          <button type="submit" class="btn btn-sm btn-outline-primary">Comment</button>
+        </form>
+        {% endif %}
+
+        <div class="mt-2">
+          {% for comment in post.comments.all|slice:":5" %}
+            <div class="small mb-1">
+              <a href="{% url 'users:profile' comment.author.username %}" class="text-decoration-none fw-bold">{{ comment.author.username }}</a>
+              {{ comment.text }}
+              <span class="text-muted">{{ comment.created_at|timesince }} ago</span>
+            </div>
+          {% endfor %}
+          {% if post.comments.count > 5 %}
+            <a href="{% url 'notifications:list' %}" class="small text-muted">View all {{ post.comments.count }} comments</a>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+    {% empty %}
+    <div class="card">
+      <div class="card-body text-center text-muted py-5">
+        No posts yet. {% if user.is_authenticated %}<a href="{% url 'posts:create' %}">Create the first one</a>!{% else %}Log in to see and create posts.{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% if user.is_authenticated %}
+<script>
+document.querySelectorAll('.like-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var postId = this.dataset.postId;
+    var liked = this.dataset.liked === '1';
+    var countEl = this.querySelector('.like-count');
+    var icon = this.querySelector('i');
+    fetch('/posts/' + postId + '/like/', {
+      method: 'POST',
+      headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+      credentials: 'same-origin'
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      countEl.textContent = data.total_likes;
+      this.dataset.liked = data.liked ? '1' : '0';
+      icon.classList.toggle('bi-heart-fill', data.liked);
+      icon.classList.toggle('bi-heart', !data.liked);
+      this.classList.toggle('text-danger', data.liked);
+      this.classList.toggle('text-muted', !data.liked);
+    }.bind(this));
+  });
+});
+</script>
+{% endif %}
+{% endblock %}

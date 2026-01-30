@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Friends{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h2 class="mb-4">Friends</h2>
+
+    <div class="card mb-4">
+      <div class="card-header">Received requests</div>
+      <ul class="list-group list-group-flush">
+        {% for fr in received_requests %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a href="{% url 'users:profile' fr.sender.username %}">{{ fr.sender.username }}</a>
+            <a href="{% url 'friends:accept' fr.pk %}" class="btn btn-accent btn-sm">Accept</a>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-muted">No pending requests</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header">Sent requests</div>
+      <ul class="list-group list-group-flush">
+        {% for fr in sent_requests %}
+          <li class="list-group-item">
+            <a href="{% url 'users:profile' fr.receiver.username %}">{{ fr.receiver.username }}</a>
+            <span class="text-muted small">Pending</span>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-muted">No sent requests</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Friends</div>
+      <ul class="list-group list-group-flush">
+        {% for friend in friends %}
+          <li class="list-group-item">
+            <a href="{% url 'users:profile' friend.username %}">{{ friend.username }}</a>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-muted">No friends yet. Send or accept friend requests!</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
