@@ -143,8 +143,10 @@ python manage.py test
 ```
 
 ## Screenshots
+<img width="1920" height="952" alt="Screenshot 2026-01-30 at 10 48 24 AM" src="https://github.com/user-attachments/assets/b09dfdeb-3c54-4cae-a9e7-4e07cef05be7" />
+<img width="1919" height="955" alt="Screenshot 2026-01-30 at 10 49 12 AM" src="https://github.com/user-attachments/assets/4b6f6aff-774c-45ff-bbe5-a05302825dc6" />
 
-*(Add screenshots of feed, profile, and notifications here after running the app.)*
+
 
 ## License
 
