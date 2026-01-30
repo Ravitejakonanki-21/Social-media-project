@@ -148,6 +148,3 @@ python manage.py test
 
 
 
-## License
-
-MIT (or as required by your institution).
